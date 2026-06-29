@@ -8,7 +8,7 @@
     <div>
       <h1>{{ probe.titel }}</h1>
       <p class="probe-meta">
-        {{ probe.datum.strftime("%A, %d.%m.%Y") }}
+        {{ probe.datum | datum_kurz }}
         {% if probe.ort %} · {{ probe.ort }}{% endif %}
       </p>
     </div>

@@ -31,6 +31,19 @@ app = FastAPI(title="Probenplaner")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+_WOCHENTAGE = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
+_MONATE = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+           'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember']
+
+def _datum_kurz(d):
+    return f"{_WOCHENTAGE[d.weekday()]}, {d.strftime('%d.%m.%Y')}"
+
+def _datum_lang(d):
+    return f"{_WOCHENTAGE[d.weekday()]}, {d.day}. {_MONATE[d.month - 1]} {d.year}"
+
+templates.env.filters['datum_kurz'] = _datum_kurz
+templates.env.filters['datum_lang'] = _datum_lang
+
 class ReihenfolgePayload(BaseModel):
     ids: list[int]
 

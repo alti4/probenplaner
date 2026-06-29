@@ -297,8 +297,43 @@ function repBearbeitenAbbrechen(id) {
 // Init
 // ════════════════════════════════════════════════════════════════════════════
 
+// ════════════════════════════════════════════════════════════════════════════
+// 5. STÜCK-FORMULAR – Speichern ohne Seitenneuladen
+// ════════════════════════════════════════════════════════════════════════════
+
+function initStueckForms() {
+  document.querySelectorAll('.stueck-form').forEach(form => {
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const btn = form.querySelector('button[type="submit"]');
+      const origText = btn.textContent;
+      btn.disabled = true;
+      try {
+        const resp = await fetch(form.action, { method: 'POST', body: new FormData(form) });
+        if (resp.ok || resp.redirected) {
+          btn.textContent = '✓ Gespeichert';
+          btn.style.color = 'var(--farbe-akzent)';
+        } else {
+          throw new Error();
+        }
+      } catch {
+        btn.textContent = '✗ Fehler';
+        btn.style.color = '#b91c1c';
+      } finally {
+        btn.disabled = false;
+        setTimeout(() => {
+          btn.textContent = origText;
+          btn.style.color = '';
+        }, 2000);
+      }
+    });
+  });
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
   initBullets();
   initVcheck();
   initFragen();
+  initStueckForms();
 });

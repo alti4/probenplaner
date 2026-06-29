@@ -175,7 +175,7 @@
 <div class="druck-header">
   <h1>{{ probe.titel }}</h1>
   <p class="meta">
-    {{ probe.datum.strftime("%A, %d. %B %Y") }}
+    {{ probe.datum | datum_lang }}
     {% if probe.ort %} &middot; {{ probe.ort }}{% endif %}
   </p>
 </div>
