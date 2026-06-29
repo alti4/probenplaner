@@ -242,6 +242,17 @@ label {
   color: var(--farbe-sekundaer);
 }
 
+.vergangene-titel {
+  margin-top: 1.5rem;
+}
+
+.probe-karte--vergangen {
+  opacity: 0.45;
+}
+.probe-karte--vergangen:hover {
+  opacity: 0.7;
+}
+
 /* ── Abschnitte & Stücke ────────────────────────────────────────────────── */
 .stuecke-bereich h2 {
   font-size: 1.2rem;
@@ -341,6 +352,78 @@ label {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.3rem;
+}
+
+/* ── Vorbereitung-Checkliste ────────────────────────────────────────────── */
+.vfeld-kopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.3rem;
+}
+
+.vfeld-kopf .feld-label { margin-bottom: 0; }
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--farbe-akzent);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0;
+  text-decoration: underline;
+  font-family: inherit;
+}
+.link-btn:hover { opacity: 0.7; }
+
+.vcheck-anzeige {
+  background: var(--farbe-hintergrund);
+  border: 1px solid var(--farbe-rand);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.6rem;
+  min-height: 2.2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.vcheck-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 0.18rem 0.25rem;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  border-radius: 3px;
+}
+.vcheck-item:hover { background: rgba(0,0,0,0.04); }
+
+.vcheck-mark {
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 1.5px solid #999;
+  border-radius: 2px;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  color: var(--farbe-akzent);
+}
+.vcheck-item.done .vcheck-mark::after { content: '✓'; font-weight: bold; }
+
+.vcheck-text { line-height: 1.45; }
+.vcheck-item.done .vcheck-text {
+  text-decoration: line-through;
+  color: var(--farbe-sekundaer);
+}
+
+.vcheck-plain {
+  font-size: 0.88rem;
+  color: var(--farbe-sekundaer);
+  padding: 0.1rem 0;
+  font-style: italic;
 }
 
 @media (max-width: 650px) {

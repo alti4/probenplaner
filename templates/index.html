@@ -27,10 +27,11 @@
 </section>
 
 <section class="probe-liste">
-  {% if proben %}
-    <h2>Alle Proben</h2>
+  {% if kommende_proben or vergangene_proben %}
+    {% if kommende_proben %}
+    <h2>Kommende Proben</h2>
     <ul class="probe-karten">
-      {% for probe in proben %}
+      {% for probe in kommende_proben %}
       <li>
         <a href="/probe/{{ probe.id }}" class="probe-karte">
           <span class="probe-datum">{{ probe.datum.strftime("%d.%m.%Y") }}</span>
@@ -42,6 +43,24 @@
       </li>
       {% endfor %}
     </ul>
+    {% endif %}
+
+    {% if vergangene_proben %}
+    <h2 class="vergangene-titel">Vergangene Proben</h2>
+    <ul class="probe-karten">
+      {% for probe in vergangene_proben %}
+      <li>
+        <a href="/probe/{{ probe.id }}" class="probe-karte probe-karte--vergangen">
+          <span class="probe-datum">{{ probe.datum.strftime("%d.%m.%Y") }}</span>
+          <span class="probe-titel">{{ probe.titel }}</span>
+          {% if probe.ort %}
+          <span class="probe-ort">{{ probe.ort }}</span>
+          {% endif %}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
   {% else %}
     <p class="leer-hinweis">Noch keine Proben vorhanden. Lege oben die erste an.</p>
   {% endif %}

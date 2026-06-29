@@ -80,6 +80,85 @@ function handleBulletAutokonvert(e) {
 
 
 // ════════════════════════════════════════════════════════════════════════════
+// 2. VORBEREITUNG-CHECKLISTE – Bullet-Punkte während der Probe abhaken
+// ════════════════════════════════════════════════════════════════════════════
+//
+// Zustand (welche Zeilen abgehakt) wird im localStorage gespeichert.
+// Schlüssel: pp-c-{stueck_id}  →  JSON-Array von Zeilennummern
+//
+
+function renderVcheck(anzeige, text, id) {
+  const gespeichert = new Set(JSON.parse(localStorage.getItem('pp-c-' + id) || '[]'));
+  anzeige.innerHTML = '';
+
+  text.split('\n').forEach((zeile, i) => {
+    const bereinigt = zeile.trim();
+    if (!bereinigt) return;
+
+    const istBullet = bereinigt.startsWith('•');
+    const displayText = istBullet ? bereinigt.slice(1).trim() : bereinigt;
+    const einzug = zeile.search(/\S/) / 2;
+
+    const el = document.createElement('div');
+    el.className = 'vcheck-item' + (gespeichert.has(i) ? ' done' : '');
+    el.dataset.i = i;
+    if (einzug > 0) el.style.paddingLeft = einzug + 'rem';
+
+    const mark = document.createElement('span');
+    mark.className = 'vcheck-mark';
+
+    const span = document.createElement('span');
+    span.className = 'vcheck-text';
+    span.textContent = displayText;
+
+    el.appendChild(mark);
+    el.appendChild(span);
+    anzeige.appendChild(el);
+  });
+
+  // Einmaliger Klick-Handler per Event-Delegation auf dem Container
+  anzeige.onclick = function(e) {
+    const item = e.target.closest('.vcheck-item');
+    if (!item || !anzeige.contains(item)) return;
+    item.classList.toggle('done');
+    const aktiv = Array.from(anzeige.querySelectorAll('.vcheck-item.done'))
+                       .map(el => Number(el.dataset.i));
+    localStorage.setItem('pp-c-' + id, JSON.stringify(aktiv));
+  };
+}
+
+function initVcheck() {
+  document.querySelectorAll('.vcheck-anzeige[data-stueck-id]').forEach(anzeige => {
+    const id = anzeige.dataset.stueckId;
+    const ta = document.querySelector('.vcheck-quelle[data-stueck-id="' + id + '"]');
+    if (ta) {
+      ta.style.display = 'none';
+      renderVcheck(anzeige, ta.value, id);
+    }
+  });
+}
+
+function vcheckToggle(btn) {
+  const stueckCard = btn.closest('.stueck');
+  const ta = stueckCard.querySelector('.vcheck-quelle');
+  const anzeige = stueckCard.querySelector('.vcheck-anzeige');
+  const editMode = ta.style.display !== 'none';
+
+  if (editMode) {
+    ta.style.display = 'none';
+    anzeige.style.display = '';
+    btn.textContent = '✎ Bearbeiten';
+    renderVcheck(anzeige, ta.value, ta.dataset.stueckId);
+  } else {
+    ta.style.display = '';
+    anzeige.style.display = 'none';
+    btn.textContent = '✓ Fertig';
+    ta.focus();
+  }
+}
+
+
+// ════════════════════════════════════════════════════════════════════════════
 // 3. FRAGEN-WIDGET – Checkboxen mit Speichern per fetch()
 // ════════════════════════════════════════════════════════════════════════════
 //
@@ -220,5 +299,6 @@ function repBearbeitenAbbrechen(id) {
 
 document.addEventListener('DOMContentLoaded', () => {
   initBullets();
+  initVcheck();
   initFragen();
 });

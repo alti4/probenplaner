@@ -124,9 +124,19 @@
       <form method="post" action="/stueck/{{ stueck.id }}/speichern" class="stueck-form">
         <div class="stueck-felder">
           <div>
-            <label class="feld-label">Vorbereitung</label>
+            <div class="vfeld-kopf">
+              <label class="feld-label">Vorbereitung</label>
+              {% if stueck.notizen %}
+              <button type="button" class="link-btn" onclick="vcheckToggle(this)">✎ Bearbeiten</button>
+              {% endif %}
+            </div>
             <textarea name="notizen" data-bullets rows="3"
+                      class="{% if stueck.notizen %}vcheck-quelle{% endif %}"
+                      data-stueck-id="{{ stueck.id }}"
                       placeholder="– Vorbereitung, Fokus, Anweisungen">{{ stueck.notizen }}</textarea>
+            {% if stueck.notizen %}
+            <div class="vcheck-anzeige" data-stueck-id="{{ stueck.id }}"></div>
+            {% endif %}
           </div>
           <div>
             <label class="feld-label">Probennotizen</label>

@@ -67,8 +67,14 @@ ABSCHNITT_LABEL = {
 
 @app.get("/")
 def startseite(request: Request, db: Session = Depends(get_db)):
-    proben = db.query(models.Probe).order_by(models.Probe.datum.desc()).all()
-    return templates.TemplateResponse(request, "index.html", {"proben": proben})
+    heute = date.today()
+    alle = db.query(models.Probe).order_by(models.Probe.datum).all()
+    kommende = [p for p in reversed(alle) if p.datum >= heute]
+    vergangene = [p for p in reversed(alle) if p.datum < heute]
+    return templates.TemplateResponse(request, "index.html", {
+        "kommende_proben": kommende,
+        "vergangene_proben": vergangene,
+    })
 
 
 # ── Probe erstellen ─────────────────────────────────────────────────────────

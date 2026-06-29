@@ -43,8 +43,10 @@
 
     {% if stueck.notizen %}
     <div class="eink-vorbereitung">
-      <span class="eink-label">Vorbereitung</span>
-      <div class="eink-text eink-grau">{{ stueck.notizen }}</div>
+      <span class="eink-label">Vorbereitung – tippen zum Abhaken</span>
+      <div class="vcheck-anzeige" data-stueck-id="{{ stueck.id }}"></div>
+      <textarea class="vcheck-quelle" data-stueck-id="{{ stueck.id }}"
+                style="display:none">{{ stueck.notizen }}</textarea>
     </div>
     {% endif %}
 
@@ -106,7 +108,10 @@
   <a href="#top">↑ Zum Anfang</a>
   &nbsp;·&nbsp;
   <a href="/probe/{{ probe.id }}">Normale Ansicht</a>
+  &nbsp;·&nbsp;
+  <a href="#" id="checks-reset">Haken zurücksetzen</a>
 </footer>
 
+<script src="/static/eink.js"></script>
 </body>
 </html>
