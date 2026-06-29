@@ -1,7 +1,7 @@
 from datetime import date
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Query, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -61,6 +61,14 @@ ABSCHNITT_LABEL = {
     "einspiel": "Einspiel",
     "fragen": "Zu klärende Fragen",
 }
+
+
+# ── PWA-Dateien ─────────────────────────────────────────────────────────────
+
+@app.get("/sw.js")
+async def service_worker():
+    return FileResponse("static/sw.js", media_type="application/javascript",
+                        headers={"Service-Worker-Allowed": "/"})
 
 
 # ── Startseite ──────────────────────────────────────────────────────────────
