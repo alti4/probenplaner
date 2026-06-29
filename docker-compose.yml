@@ -1,0 +1,10 @@
+services:
+  probenplaner:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8000:8000"       # Host-Port:Container-Port – bei Bedarf links ändern
+    volumes:
+      - ./data:/app/data  # SQLite-Datei liegt auf dem Host unter ./data/
+    environment:
+      - DB_PATH=/app/data/probenplaner.db

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ probe.titel }} – Druckansicht</title>
+  <style>
+    /* ── Basis ────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 11pt; line-height: 1.5; }
+
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      color: #000;
+      background: #fff;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem;
+    }
+
+    /* ── Toolbar (nur am Bildschirm) ──────────────────────────────── */
+    .toolbar {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #ccc;
+      font-family: system-ui, sans-serif;
+    }
+
+    .toolbar a { color: #2c5f8a; text-decoration: none; font-size: 0.9rem; }
+    .toolbar a:hover { text-decoration: underline; }
+
+    .btn-drucken {
+      margin-left: auto;
+      padding: 0.45rem 1.1rem;
+      background: #2c5f8a;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: system-ui, sans-serif;
+    }
+
+    /* ── Kopfzeile ────────────────────────────────────────────────── */
+    .druck-header { margin-bottom: 1.5rem; }
+
+    .druck-header h1 {
+      font-size: 1.6rem;
+      font-weight: bold;
+      line-height: 1.2;
+    }
+
+    .druck-header .meta {
+      font-size: 0.95rem;
+      color: #444;
+      margin-top: 0.2rem;
+    }
+
+    /* ── Abschnitte ───────────────────────────────────────────────── */
+    .abschnitt {
+      margin-top: 1.4rem;
+      padding-top: 1rem;
+      border-top: 1.5pt solid #000;
+    }
+
+    .abschnitt h2 {
+      font-size: 1rem;
+      font-weight: bold;
+      font-family: system-ui, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.5rem;
+    }
+
+    .inhalt-text {
+      white-space: pre-wrap;
+      font-size: 1rem;
+      line-height: 1.55;
+    }
+
+    .leer { color: #888; font-style: italic; }
+
+    /* ── Fragen ───────────────────────────────────────────────────── */
+    .fragen-liste {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    .frage-zeile {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.55rem;
+    }
+
+    .frage-box {
+      width: 0.9rem;
+      height: 0.9rem;
+      border: 1.5pt solid #000;
+      border-radius: 2px;
+      flex-shrink: 0;
+      margin-top: 0.2rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+    }
+
+    .frage-text { font-size: 1rem; line-height: 1.4; }
+    .frage-erledigt { text-decoration: line-through; color: #666; }
+
+    /* ── Stücke ───────────────────────────────────────────────────── */
+    .stueck {
+      margin-top: 1.4rem;
+      padding-top: 1rem;
+      border-top: 1.5pt solid #000;
+    }
+
+    .stueck-nummer {
+      font-size: 0.75rem;
+      font-family: system-ui, sans-serif;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #666;
+    }
+
+    .stueck h3 {
+      font-size: 1.15rem;
+      font-weight: bold;
+      margin-top: 0.1rem;
+      margin-bottom: 0.45rem;
+    }
+
+    /* ── Fusszeile ────────────────────────────────────────────────── */
+    .druck-footer {
+      margin-top: 2rem;
+      padding-top: 0.75rem;
+      border-top: 0.5pt solid #999;
+      font-size: 0.8rem;
+      color: #888;
+      font-family: system-ui, sans-serif;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* ── Druckoptimierung ─────────────────────────────────────────── */
+    @media print {
+      .toolbar { display: none; }
+
+      body { padding: 0; max-width: 100%; }
+
+      .abschnitt, .stueck { page-break-inside: avoid; }
+
+      @page {
+        margin: 1.5cm 2cm;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="toolbar">
+  <a href="/probe/{{ probe.id }}">&larr; Zurück zur Probe</a>
+  <button class="btn-drucken" onclick="window.print()">&#128438; Drucken</button>
+</div>
+
+<!-- Kopfzeile -->
+<div class="druck-header">
+  <h1>{{ probe.titel }}</h1>
+  <p class="meta">
+    {{ probe.datum.strftime("%A, %d. %B %Y") }}
+    {% if probe.ort %} &middot; {{ probe.ort }}{% endif %}
+  </p>
+</div>
+
+<!-- Fixe Abschnitte (ohne "Zu klärende Fragen", der kommt separat) -->
+{% for abschnitt in abschnitte if abschnitt.typ != 'fragen' %}
+<div class="abschnitt">
+  <h2>{{ abschnitt_label[abschnitt.typ] }}</h2>
+  {% if abschnitt.inhalt %}
+  <div class="inhalt-text">{{ abschnitt.inhalt }}</div>
+  {% else %}
+  <p class="leer">Keine Notizen erfasst.</p>
+  {% endif %}
+</div>
+{% endfor %}
+
+<!-- Stücke -->
+{% if probe.stuecke %}
+{% for stueck in probe.stuecke %}
+<div class="stueck">
+  <div class="stueck-nummer">Stück {{ loop.index }}</div>
+  <h3>{{ stueck.titel }}</h3>
+  {% if stueck.notizen %}
+  <div class="inhalt-text">{{ stueck.notizen }}</div>
+  {% else %}
+  <p class="leer">Keine Notizen erfasst.</p>
+  {% endif %}
+</div>
+{% endfor %}
+{% endif %}
+
+<!-- Zu klärende Fragen -->
+{% for abschnitt in abschnitte if abschnitt.typ == 'fragen' %}
+<div class="abschnitt">
+  <h2>{{ abschnitt_label[abschnitt.typ] }}</h2>
+  {% if fragen %}
+  <ul class="fragen-liste">
+    {% for frage in fragen %}
+    <li class="frage-zeile">
+      <span class="frage-box">{% if frage.erledigt %}✓{% endif %}</span>
+      <span class="frage-text {% if frage.erledigt %}frage-erledigt{% endif %}">{{ frage.text }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="leer">Keine Fragen erfasst.</p>
+  {% endif %}
+</div>
+{% endfor %}
+
+<div class="druck-footer">
+  <span>Probenplaner</span>
+  <span>{{ probe.datum.strftime("%d.%m.%Y") }}</span>
+</div>
+
+</body>
+</html>

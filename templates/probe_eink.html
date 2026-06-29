@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ probe.titel }}</title>
+  <link rel="stylesheet" href="/static/eink.css">
+</head>
+<body>
+
+<header id="top">
+  <div class="eink-header-inhalt">
+    <div>
+      <h1>{{ probe.titel }}</h1>
+      <p class="eink-datum">
+        {{ probe.datum.strftime("%A, %d.%m.%Y") }}
+        {% if probe.ort %} · {{ probe.ort }}{% endif %}
+      </p>
+    </div>
+    <a href="/probe/{{ probe.id }}" class="eink-normal-btn">Normale Ansicht</a>
+  </div>
+</header>
+
+<!-- ── Informationen & Einspiel (nur Anzeige) ─────────────────────── -->
+{% for abschnitt in abschnitte if abschnitt.typ != 'fragen' %}
+<details open>
+  <summary>{{ abschnitt_label[abschnitt.typ] }}</summary>
+  <div class="eink-details-inhalt">
+    {% if abschnitt.inhalt %}
+    <div class="eink-text">{{ abschnitt.inhalt }}</div>
+    {% else %}
+    <p class="eink-leer">Keine Notizen erfasst.</p>
+    {% endif %}
+  </div>
+</details>
+{% endfor %}
+
+<!-- ── Stücke ─────────────────────────────────────────────────────── -->
+{% for stueck in probe.stuecke %}
+<details open>
+  <summary>{{ loop.index }}. {{ stueck.titel }}</summary>
+  <div class="eink-details-inhalt">
+
+    {% if stueck.notizen %}
+    <div class="eink-vorbereitung">
+      <span class="eink-label">Vorbereitung</span>
+      <div class="eink-text eink-grau">{{ stueck.notizen }}</div>
+    </div>
+    {% endif %}
+
+    <form method="post" action="/stueck/{{ stueck.id }}/speichern?eink=1">
+      <input type="hidden" name="notizen" value="{{ stueck.notizen | e }}">
+      <label class="eink-label" for="pn-{{ stueck.id }}">Probennotizen</label>
+      <textarea id="pn-{{ stueck.id }}" name="probe_notizen"
+                rows="5" placeholder="Notizen während der Probe…">{{ stueck.probe_notizen }}</textarea>
+      <button type="submit" class="eink-btn">Speichern</button>
+    </form>
+
+  </div>
+</details>
+{% endfor %}
+
+{% if not probe.stuecke %}
+<div class="eink-details-inhalt">
+  <p class="eink-leer">Keine Stücke in dieser Probe.</p>
+</div>
+{% endif %}
+
+<!-- ── Zu klärende Fragen ────────────────────────────────────────── -->
+{% for abschnitt in abschnitte if abschnitt.typ == 'fragen' %}
+<details open>
+  <summary>{{ abschnitt_label[abschnitt.typ] }}</summary>
+  <div class="eink-details-inhalt">
+
+    {% if fragen %}
+    <form method="post" action="/eink/abschnitt/{{ abschnitt.id }}/fragen">
+      {% for frage in fragen %}
+      <div class="eink-frage {% if frage.erledigt %}erledigt{% endif %}">
+        <input type="hidden" name="frage_text_{{ loop.index0 }}" value="{{ frage.text | e }}">
+        <input type="checkbox" id="frage-{{ loop.index0 }}"
+               name="frage_erledigt_{{ loop.index0 }}" value="1"
+               {% if frage.erledigt %}checked{% endif %}>
+        <label for="frage-{{ loop.index0 }}">{{ frage.text }}</label>
+      </div>
+      {% endfor %}
+      <button type="submit" class="eink-btn">Speichern</button>
+    </form>
+    {% else %}
+    <p class="eink-leer">Keine Fragen eingetragen.</p>
+    {% endif %}
+
+    <div class="eink-trenner"></div>
+
+    <form method="post" action="/abschnitt/{{ abschnitt.id }}/notizen?eink=1">
+      <label class="eink-label">Antworten / Notizen</label>
+      <textarea name="notizen" rows="4"
+                placeholder="Antworten und Notizen zu den Fragen…">{{ abschnitt.notizen }}</textarea>
+      <button type="submit" class="eink-btn">Speichern</button>
+    </form>
+
+  </div>
+</details>
+{% endfor %}
+
+<footer class="eink-footer">
+  <a href="#top">↑ Zum Anfang</a>
+  &nbsp;·&nbsp;
+  <a href="/probe/{{ probe.id }}">Normale Ansicht</a>
+</footer>
+
+</body>
+</html>

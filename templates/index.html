@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Probenplaner – Übersicht{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Proben</h1>
+</div>
+
+<section class="card">
+  <h2>Neue Probe anlegen</h2>
+  <form method="post" action="/proben/neu" class="form-neu">
+    <div class="form-row">
+      <label for="titel">Titel</label>
+      <input type="text" id="titel" name="titel" required
+             placeholder="z. B. Probe 3 – Mai">
+    </div>
+    <div class="form-row">
+      <label for="datum">Datum</label>
+      <input type="date" id="datum" name="datum" required>
+    </div>
+    <div class="form-row">
+      <label for="ort">Ort <span class="optional">(optional)</span></label>
+      <input type="text" id="ort" name="ort" placeholder="z. B. Musiksaal">
+    </div>
+    <button type="submit" class="btn btn-primary">Probe erstellen</button>
+  </form>
+</section>
+
+<section class="probe-liste">
+  {% if proben %}
+    <h2>Alle Proben</h2>
+    <ul class="probe-karten">
+      {% for probe in proben %}
+      <li>
+        <a href="/probe/{{ probe.id }}" class="probe-karte">
+          <span class="probe-datum">{{ probe.datum.strftime("%d.%m.%Y") }}</span>
+          <span class="probe-titel">{{ probe.titel }}</span>
+          {% if probe.ort %}
+          <span class="probe-ort">{{ probe.ort }}</span>
+          {% endif %}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="leer-hinweis">Noch keine Proben vorhanden. Lege oben die erste an.</p>
+  {% endif %}
+</section>
+{% endblock %}

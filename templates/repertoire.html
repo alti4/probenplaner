@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Repertoire – Probenplaner{% endblock %}
+
+{% macro rep_karte(stuck) %}
+<li class="rep-karte {{ 'aktiv' if stuck.aktiv else 'inaktiv' }}" id="rep-{{ stuck.id }}">
+
+  <!-- Normalansicht -->
+  <div class="rep-zeige">
+    <div class="rep-info">
+      <span class="rep-titel">{{ stuck.titel }}</span>
+      {% if stuck.komponist %}
+      <span class="rep-komponist">{{ stuck.komponist }}</span>
+      {% endif %}
+    </div>
+    <div class="rep-aktionen">
+      <button type="button" class="btn btn-sekundaer btn-klein"
+              onclick="repBearbeiten({{ stuck.id }})">Bearbeiten</button>
+      <form method="post" action="/repertoire/{{ stuck.id }}/toggle">
+        <button type="submit" class="btn btn-sekundaer btn-klein">
+          {{ 'Deaktivieren' if stuck.aktiv else 'Aktivieren' }}
+        </button>
+      </form>
+      <form method="post" action="/repertoire/{{ stuck.id }}/loeschen"
+            onsubmit="return confirm('„{{ stuck.titel }}" wirklich löschen?\nIn bestehenden Proben bleibt das Stück erhalten.')">
+        <button type="submit" class="btn btn-loeschen btn-klein">Löschen</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Editformular (zunächst versteckt) -->
+  <div class="rep-editform" id="rep-edit-{{ stuck.id }}" hidden>
+    <form method="post" action="/repertoire/{{ stuck.id }}/bearbeiten">
+      <div class="form-row">
+        <label>Titel</label>
+        <input type="text" name="titel" value="{{ stuck.titel }}" required>
+      </div>
+      <div class="form-row">
+        <label>Komponist <span class="optional">(optional)</span></label>
+        <input type="text" name="komponist" value="{{ stuck.komponist or '' }}">
+      </div>
+      <div class="rep-edit-aktionen">
+        <button type="submit" class="btn btn-primary btn-klein">Speichern</button>
+        <button type="button" class="btn btn-sekundaer btn-klein"
+                onclick="repBearbeitenAbbrechen({{ stuck.id }})">Abbrechen</button>
+      </div>
+    </form>
+  </div>
+
+</li>
+{% endmacro %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Repertoire</h1>
+</div>
+
+<section class="card">
+  <h2>Stück hinzufügen</h2>
+  <form method="post" action="/repertoire/neu" class="form-neu">
+    <div class="form-row">
+      <label for="titel">Titel</label>
+      <input type="text" id="titel" name="titel" required placeholder="Stücktitel">
+    </div>
+    <div class="form-row">
+      <label for="komponist">Komponist <span class="optional">(optional)</span></label>
+      <input type="text" id="komponist" name="komponist" placeholder="z. B. Johann Strauss">
+    </div>
+    <button type="submit" class="btn btn-primary">Hinzufügen</button>
+  </form>
+</section>
+
+<section class="repertoire-liste">
+  <div class="rep-gruppe">
+    <h2 class="rep-gruppe-titel">Aktiv <span class="rep-anzahl">{{ aktive | length }}</span></h2>
+    {% if aktive %}
+    <ul class="rep-karten">
+      {% for stuck in aktive %}{{ rep_karte(stuck) }}{% endfor %}
+    </ul>
+    {% else %}
+    <p class="leer-hinweis">Noch keine aktiven Stücke.</p>
+    {% endif %}
+  </div>
+
+  {% if inaktive %}
+  <div class="rep-gruppe">
+    <h2 class="rep-gruppe-titel">Inaktiv <span class="rep-anzahl">{{ inaktive | length }}</span></h2>
+    <ul class="rep-karten">
+      {% for stuck in inaktive %}{{ rep_karte(stuck) }}{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</section>
+
+<script src="/static/app.js"></script>
+{% endblock %}

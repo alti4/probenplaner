@@ -1,0 +1,15 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Datenbank (enthält echte Daten, nicht ins Repo)
+*.db
+data/
+
+# Editor / Tools
+.claude/
+.idea/
+.vscode/
+*.swp

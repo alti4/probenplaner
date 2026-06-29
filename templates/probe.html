@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}{{ probe.titel }} – Probenplaner{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <a href="/" class="zurueck">&larr; Übersicht</a>
+  <div class="page-header-zeile">
+    <div>
+      <h1>{{ probe.titel }}</h1>
+      <p class="probe-meta">
+        {{ probe.datum.strftime("%A, %d.%m.%Y") }}
+        {% if probe.ort %} · {{ probe.ort }}{% endif %}
+      </p>
+    </div>
+    <div class="probe-aktionen">
+      <a href="/probe/{{ probe.id }}/drucken" class="btn btn-sekundaer btn-klein">Drucken</a>
+      <a href="/probe/{{ probe.id }}?eink=1" class="btn btn-sekundaer btn-klein">E-Ink</a>
+      <button type="button" class="btn btn-sekundaer btn-klein"
+              onclick="probeBearbeiten()">Bearbeiten</button>
+      <form method="post" action="/probe/{{ probe.id }}/loeschen"
+            onsubmit="return confirm('Probe „{{ probe.titel }}" wirklich löschen?\n\nAlle Stücke und Notizen dieser Probe werden unwiderruflich gelöscht.')">
+        <button type="submit" class="btn btn-loeschen btn-klein">Löschen</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="probe-editform" hidden>
+  <h2>Probe bearbeiten</h2>
+  <form method="post" action="/probe/{{ probe.id }}/bearbeiten" class="form-neu">
+    <div class="form-row">
+      <label for="edit-titel">Titel</label>
+      <input type="text" id="edit-titel" name="titel" value="{{ probe.titel }}" required>
+    </div>
+    <div class="form-row">
+      <label for="edit-datum">Datum</label>
+      <input type="date" id="edit-datum" name="datum" value="{{ probe.datum.isoformat() }}" required>
+    </div>
+    <div class="form-row">
+      <label for="edit-ort">Ort <span class="optional">(optional)</span></label>
+      <input type="text" id="edit-ort" name="ort" value="{{ probe.ort or '' }}">
+    </div>
+    <div class="rep-edit-aktionen">
+      <button type="submit" class="btn btn-primary">Speichern</button>
+      <button type="button" class="btn btn-sekundaer"
+              onclick="probeBearbeitenAbbrechen()">Abbrechen</button>
+    </div>
+  </form>
+</div>
+
+<!-- Fixe Abschnitte -->
+{% for abschnitt in abschnitte %}
+<section class="card abschnitt">
+  <h2>{{ abschnitt_label[abschnitt.typ] }}</h2>
+
+  {% if abschnitt.typ == 'fragen' %}
+  <!-- Fragen-Widget: wird per JS als Checkbox-Liste gerendert -->
+  <div class="fragen-widget" data-id="{{ abschnitt.id }}">
+    <textarea class="fragen-rohdaten" style="display:none">{{ abschnitt.inhalt }}</textarea>
+    <div class="fragen-liste"></div>
+    <div class="frage-neu">
+      <input type="text" class="frage-neu-input" placeholder="Neue Frage hinzufügen...">
+      <button type="button" class="btn btn-sekundaer frage-hinzufuegen-btn">+ Hinzufügen</button>
+    </div>
+  </div>
+  <form method="post" action="/abschnitt/{{ abschnitt.id }}/notizen" style="margin-top:1rem">
+    <label class="feld-label">Antworten / Notizen</label>
+    <textarea name="notizen" data-bullets rows="3"
+              placeholder="– Antworten und Notizen zu den Fragen">{{ abschnitt.notizen }}</textarea>
+    <button type="submit" class="btn btn-sekundaer">Speichern</button>
+  </form>
+
+  {% else %}
+  <!-- Normaler Abschnitt: Textarea mit Bullet-Unterstützung -->
+  <form method="post" action="/abschnitt/{{ abschnitt.id }}/speichern">
+    <textarea name="inhalt" data-bullets rows="4"
+              placeholder="– Tippe und drücke Enter für neue Zeile mit Aufzählungszeichen">{{ abschnitt.inhalt }}</textarea>
+    <button type="submit" class="btn btn-sekundaer">Speichern</button>
+  </form>
+  {% endif %}
+</section>
+{% endfor %}
+
+<!-- Stücke -->
+<section class="stuecke-bereich">
+  <h2>Stücke</h2>
+
+  {% if verfuegbare_stuecke %}
+  <div class="card repertoire-auswahl">
+    <h3>Aus Repertoire hinzufügen</h3>
+    <div class="rep-buttons">
+      {% for stuck in verfuegbare_stuecke %}
+      <form method="post" action="/probe/{{ probe.id }}/stueck/aus-repertoire">
+        <input type="hidden" name="repertoire_id" value="{{ stuck.id }}">
+        <button type="submit" class="btn btn-rep">+ {{ stuck.titel }}</button>
+      </form>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="stueck-liste" id="stueck-liste">
+    {% for stueck in probe.stuecke %}
+    <div class="card stueck" data-id="{{ stueck.id }}">
+      <div class="stueck-kopf">
+        <div class="stueck-pfeile">
+          <form method="post" action="/stueck/{{ stueck.id }}/verschieben">
+            <input type="hidden" name="richtung" value="hoch">
+            <button type="submit" class="btn-pfeil" {% if loop.first %}disabled{% endif %}
+                    title="Nach oben">▲</button>
+          </form>
+          <form method="post" action="/stueck/{{ stueck.id }}/verschieben">
+            <input type="hidden" name="richtung" value="runter">
+            <button type="submit" class="btn-pfeil" {% if loop.last %}disabled{% endif %}
+                    title="Nach unten">▼</button>
+          </form>
+        </div>
+        <h3>{{ stueck.titel }}</h3>
+        <form method="post" action="/stueck/{{ stueck.id }}/loeschen"
+              onsubmit="return confirm('„{{ stueck.titel }}" aus dieser Probe entfernen?')">
+          <button type="submit" class="btn btn-loeschen btn-klein stueck-loeschen">Entfernen</button>
+        </form>
+      </div>
+      <form method="post" action="/stueck/{{ stueck.id }}/speichern" class="stueck-form">
+        <div class="stueck-felder">
+          <div>
+            <label class="feld-label">Vorbereitung</label>
+            <textarea name="notizen" data-bullets rows="3"
+                      placeholder="– Vorbereitung, Fokus, Anweisungen">{{ stueck.notizen }}</textarea>
+          </div>
+          <div>
+            <label class="feld-label">Probennotizen</label>
+            <textarea name="probe_notizen" data-bullets rows="3"
+                      placeholder="– Notizen während der Probe">{{ stueck.probe_notizen }}</textarea>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-sekundaer">Speichern</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if not probe.stuecke %}
+  <p class="leer-hinweis">Noch keine Stücke hinzugefügt.</p>
+  {% endif %}
+
+  <div class="card stueck-neu">
+    <h3>Stück hinzufügen</h3>
+    <form method="post" action="/probe/{{ probe.id }}/stueck/neu" class="form-inline">
+      <input type="text" name="titel" required placeholder="Titel des Stücks">
+      <button type="submit" class="btn btn-primary">Hinzufügen</button>
+    </form>
+  </div>
+</section>
+
+<script src="/static/app.js"></script>
+{% endblock %}
